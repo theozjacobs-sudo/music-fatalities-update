@@ -110,25 +110,40 @@ def get_federal_holidays(years):
 # Data Loading / Generation
 # ============================================================================
 def check_xlsx_data():
-    """Check if CrashReport.xlsx is available."""
-    xlsx_path = os.path.join(BASE_DIR, "CrashReport.xlsx")
-    return os.path.exists(xlsx_path)
+    """Check if fatalities.xlsx or CrashReport.xlsx is available."""
+    for name in ["fatalities.xlsx", "CrashReport.xlsx"]:
+        if os.path.exists(os.path.join(BASE_DIR, name)):
+            return True
+    return False
+
+
+def _find_xlsx_path():
+    """Return path to the best available xlsx data file."""
+    # Prefer fatalities.xlsx (actual fatality counts) over CrashReport.xlsx (crash counts)
+    for name in ["fatalities.xlsx", "CrashReport.xlsx"]:
+        path = os.path.join(BASE_DIR, name)
+        if os.path.exists(path):
+            return path
+    return None
 
 
 def load_xlsx_data(years=range(2017, 2023)):
     """
-    Load real FARS data from CrashReport.xlsx (NHTSA crash query export).
-    The file contains daily fatal motor vehicle crash counts in a pivot table
-    with years x months as rows and days 1-31 as columns.
-
-    Note: This is fatal crash counts, not fatality counts. Each fatal crash
-    averages ~1.08 fatalities, so counts are ~8% lower than fatality counts.
-    The relative effects (% increase on release days) should be equivalent.
+    Load real FARS data from an NHTSA crash query xlsx export.
+    Supports both fatality-count exports (fatalities.xlsx) and
+    crash-count exports (CrashReport.xlsx). The file contains a pivot
+    table with years x months as rows and days 1-31 as columns.
     """
-    xlsx_path = os.path.join(BASE_DIR, "CrashReport.xlsx")
+    xlsx_path = _find_xlsx_path()
     print(f"  Loading real FARS data from {xlsx_path}...")
 
     df = pd.read_excel(xlsx_path, header=None)
+
+    # Detect whether this is fatalities or crashes from header
+    header_text = str(df.iloc[1, 0]) if df.shape[0] > 1 else ""
+    is_fatalities = "Killed" in header_text or "fatalit" in header_text.lower()
+    data_type = "fatalities" if is_fatalities else "fatal crashes"
+    print(f"  Data type detected: {data_type}")
 
     months_map = {
         'January': 1, 'February': 2, 'March': 3, 'April': 4,
@@ -139,7 +154,15 @@ def load_xlsx_data(years=range(2017, 2023)):
     records = []
     current_year = None
 
-    for i in range(7, df.shape[0]):
+    # Find first data row (look for a year number in col0)
+    start_row = 7
+    for i in range(5, min(15, df.shape[0])):
+        col0 = df.iloc[i, 0]
+        if pd.notna(col0) and str(col0).strip().isdigit():
+            start_row = i
+            break
+
+    for i in range(start_row, df.shape[0]):
         col0 = df.iloc[i, 0]
         col1 = df.iloc[i, 1]
 
@@ -1104,7 +1127,8 @@ def main():
     print("\n\n--- DATA PREPARATION ---")
     if check_xlsx_data():
         daily_data = load_xlsx_data(years=range(2017, 2023))
-        data_source = "real (CrashReport.xlsx - fatal crash counts)"
+        xlsx_name = os.path.basename(_find_xlsx_path())
+        data_source = f"real ({xlsx_name})"
     elif check_real_fars_csv():
         print("  Loading real FARS CSV data...")
         daily_data = load_real_fars_csv()
@@ -1261,7 +1285,7 @@ def main():
     for f in sorted(os.listdir(OUTPUT_DIR)):
         print(f"  {f}")
 
-    if "CrashReport" in data_source:
+    if "CrashReport" in data_source and "fatalities" not in data_source:
         print("\n  NOTE: CrashReport.xlsx provides fatal crash counts (not fatality counts).")
         print("  Each fatal crash averages ~1.08 fatalities, so absolute counts are ~8% lower")
         print("  than the paper's fatality-based numbers. Relative effects (%) are comparable.")

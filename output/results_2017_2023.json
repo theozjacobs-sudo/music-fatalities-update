@@ -1,0 +1,208 @@
+{
+  "period": "2017-2023",
+  "n_albums": 10,
+  "n_albums_from_2023": 5,
+  "albums": [
+    {
+      "rank": 1,
+      "album": "Midnights",
+      "artist": "Taylor Swift",
+      "first_day_streams": 184695609
+    },
+    {
+      "rank": 2,
+      "album": "1989 (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "first_day_streams": 176000000
+    },
+    {
+      "rank": 3,
+      "album": "Certified Lover Boy",
+      "artist": "Drake",
+      "first_day_streams": 153441565
+    },
+    {
+      "rank": 4,
+      "album": "Nadie Sabe Lo Que Va a Pasar Ma\u00f1ana",
+      "artist": "Bad Bunny",
+      "first_day_streams": 145900000
+    },
+    {
+      "rank": 5,
+      "album": "Un Verano Sin Ti",
+      "artist": "Bad Bunny",
+      "first_day_streams": 145811373
+    },
+    {
+      "rank": 6,
+      "album": "Scorpion",
+      "artist": "Drake",
+      "first_day_streams": 132384203
+    },
+    {
+      "rank": 7,
+      "album": "UTOPIA",
+      "artist": "Travis Scott",
+      "first_day_streams": 128500000
+    },
+    {
+      "rank": 8,
+      "album": "Speak Now (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "first_day_streams": 126000000
+    },
+    {
+      "rank": 9,
+      "album": "For All the Dogs",
+      "artist": "Drake",
+      "first_day_streams": 109000000
+    },
+    {
+      "rank": 10,
+      "album": "Mr. Morale & the Big Steppers",
+      "artist": "Kendrick Lamar",
+      "first_day_streams": 99582729
+    }
+  ],
+  "comparison": {
+    "release_mean": 124.42857142857143,
+    "surrounding_mean": 120.32857142857142,
+    "absolute_increase": 4.100000000000014,
+    "ci_lower": -7.049326950485968,
+    "ci_upper": 15.249326950485996,
+    "relative_increase": 3.407337053306435,
+    "p_value": 0.46922559640801326
+  },
+  "event_study": [
+    {
+      "day": -10,
+      "coef": 1.328936877076461,
+      "ci_lower": -6.308362359208441,
+      "ci_upper": 8.966236113361362
+    },
+    {
+      "day": -9,
+      "coef": -6.321063122923577,
+      "ci_lower": -13.958362359208476,
+      "ci_upper": 1.316236113361322
+    },
+    {
+      "day": -8,
+      "coef": 1.8000000000000098,
+      "ci_lower": -11.194995070341955,
+      "ci_upper": 14.794995070341974
+    },
+    {
+      "day": -7,
+      "coef": 2.893471760797354,
+      "ci_lower": -4.729351484969243,
+      "ci_upper": 10.51629500656395
+    },
+    {
+      "day": -6,
+      "coef": 14.368471760797346,
+      "ci_lower": 6.74564851503075,
+      "ci_upper": 21.991295006563945
+    },
+    {
+      "day": -5,
+      "coef": 5.64347176079737,
+      "ci_lower": -1.979351484969241,
+      "ci_upper": 13.26629500656398
+    },
+    {
+      "day": -4,
+      "coef": -2.36797342192691,
+      "ci_lower": -10.81117314057542,
+      "ci_upper": 6.075226296721599
+    },
+    {
+      "day": -3,
+      "coef": -2.3129235880399324,
+      "ci_lower": -9.988691996491262,
+      "ci_upper": 5.362844820411398
+    },
+    {
+      "day": -2,
+      "coef": 1.3789368770763857,
+      "ci_lower": -6.258362359208514,
+      "ci_upper": 9.016236113361286
+    },
+    {
+      "day": -1,
+      "coef": 0.0,
+      "ci_lower": 0.0,
+      "ci_upper": 0.0
+    },
+    {
+      "day": 0,
+      "coef": 10.093471760797348,
+      "ci_lower": 2.4706485150307422,
+      "ci_upper": 17.716295006563954
+    },
+    {
+      "day": 1,
+      "coef": 12.668471760797363,
+      "ci_lower": 5.045648515030761,
+      "ci_upper": 20.291295006563963
+    },
+    {
+      "day": 2,
+      "coef": 5.543471760797361,
+      "ci_lower": -2.0793514849692354,
+      "ci_upper": 13.166295006563958
+    },
+    {
+      "day": 3,
+      "coef": -1.1098338870432132,
+      "ci_lower": -9.805094037466844,
+      "ci_upper": 7.585426263380419
+    },
+    {
+      "day": 4,
+      "coef": 0.5289368770764,
+      "ci_lower": -7.108362359208493,
+      "ci_upper": 8.166236113361293
+    },
+    {
+      "day": 5,
+      "coef": 6.537076411960132,
+      "ci_lower": -1.138691996491203,
+      "ci_upper": 14.212844820411465
+    },
+    {
+      "day": 6,
+      "coef": -5.2000000000000295,
+      "ci_lower": -18.194995070341996,
+      "ci_upper": 7.794995070341939
+    },
+    {
+      "day": 7,
+      "coef": 9.093471760797334,
+      "ci_lower": 1.4706485150307262,
+      "ci_upper": 16.71629500656394
+    },
+    {
+      "day": 8,
+      "coef": 14.368471760797314,
+      "ci_lower": 6.745648515030712,
+      "ci_upper": 21.991295006563917
+    },
+    {
+      "day": 9,
+      "coef": 11.84347176079736,
+      "ci_lower": 4.220648515030756,
+      "ci_upper": 19.466295006563964
+    },
+    {
+      "day": 10,
+      "coef": 5.973887043189417,
+      "ci_lower": -2.4460239301268656,
+      "ci_upper": 14.393798016505698
+    }
+  ],
+  "placebo_exceed_dates": 162,
+  "placebo_exceed_fridays": 216,
+  "adjacent_friday_or": 1.0316114109483425,
+  "mean_daily_fatalities": 108.18544600938966
+}

@@ -11,9 +11,9 @@ Data Sources:
 - Spotify Charts: Daily top 200 most streamed songs in the U.S.
   https://charts.spotify.com/charts/view/regional-us-daily/latest
 
-NOTE: If FARS data is not available locally (data/fars_*/), the script
-generates calibrated synthetic data matching the paper's reported statistics.
-Replace with real FARS data for exact replication.
+The script loads real FARS data from CrashReport.xlsx if available, or from
+extracted FARS CSV files in data/fars_*/. Falls back to calibrated synthetic
+data if neither is available.
 """
 
 import os
@@ -109,8 +109,105 @@ def get_federal_holidays(years):
 # ============================================================================
 # Data Loading / Generation
 # ============================================================================
-def check_real_fars_data():
-    """Check if real FARS data is available."""
+def check_xlsx_data():
+    """Check if fatalities.xlsx or CrashReport.xlsx is available."""
+    for name in ["fatalities.xlsx", "CrashReport.xlsx"]:
+        if os.path.exists(os.path.join(BASE_DIR, name)):
+            return True
+    return False
+
+
+def _find_xlsx_path():
+    """Return path to the best available xlsx data file."""
+    # Prefer fatalities.xlsx (actual fatality counts) over CrashReport.xlsx (crash counts)
+    for name in ["fatalities.xlsx", "CrashReport.xlsx"]:
+        path = os.path.join(BASE_DIR, name)
+        if os.path.exists(path):
+            return path
+    return None
+
+
+def load_xlsx_data(years=range(2017, 2023)):
+    """
+    Load real FARS data from an NHTSA crash query xlsx export.
+    Supports both fatality-count exports (fatalities.xlsx) and
+    crash-count exports (CrashReport.xlsx). The file contains a pivot
+    table with years x months as rows and days 1-31 as columns.
+    """
+    xlsx_path = _find_xlsx_path()
+    print(f"  Loading real FARS data from {xlsx_path}...")
+
+    df = pd.read_excel(xlsx_path, header=None)
+
+    # Detect whether this is fatalities or crashes from header
+    header_text = str(df.iloc[1, 0]) if df.shape[0] > 1 else ""
+    is_fatalities = "Killed" in header_text or "fatalit" in header_text.lower()
+    data_type = "fatalities" if is_fatalities else "fatal crashes"
+    print(f"  Data type detected: {data_type}")
+
+    months_map = {
+        'January': 1, 'February': 2, 'March': 3, 'April': 4,
+        'May': 5, 'June': 6, 'July': 7, 'August': 8,
+        'September': 9, 'October': 10, 'November': 11, 'December': 12
+    }
+
+    records = []
+    current_year = None
+
+    # Find first data row (look for a year number in col0)
+    start_row = 7
+    for i in range(5, min(15, df.shape[0])):
+        col0 = df.iloc[i, 0]
+        if pd.notna(col0) and str(col0).strip().isdigit():
+            start_row = i
+            break
+
+    for i in range(start_row, df.shape[0]):
+        col0 = df.iloc[i, 0]
+        col1 = df.iloc[i, 1]
+
+        # New year starts when col0 is a number
+        if pd.notna(col0) and str(col0).strip().isdigit():
+            current_year = int(col0)
+
+        if current_year is None or current_year not in years:
+            if current_year is not None and current_year > max(years):
+                break
+            continue
+
+        # Break at the grand Total row
+        if pd.notna(col0) and str(col0).strip() == 'Total':
+            break
+
+        month_str = str(col1).strip() if pd.notna(col1) else ''
+        if month_str == 'Total' or month_str not in months_map:
+            continue
+
+        month = months_map[month_str]
+
+        # Days 1-31 are in columns 2-32
+        for day_idx in range(31):
+            day = day_idx + 1
+            val = df.iloc[i, day_idx + 2]
+
+            # Skip NaN or 0 (0 = invalid date like Feb 30)
+            if pd.isna(val) or val == 0:
+                continue
+
+            crashes = int(val)
+            try:
+                date = pd.Timestamp(current_year, month, day)
+                records.append({'date': date, 'fatalities': crashes})
+            except ValueError:
+                pass
+
+    daily = pd.DataFrame(records)
+    daily = daily.sort_values('date').reset_index(drop=True)
+    return daily
+
+
+def check_real_fars_csv():
+    """Check if real FARS CSV data is available."""
     for year in range(2017, 2023):
         year_dir = os.path.join(DATA_DIR, f"fars_{year}")
         if not os.path.exists(year_dir) or len(os.listdir(year_dir)) == 0:
@@ -118,12 +215,11 @@ def check_real_fars_data():
     return True
 
 
-def load_real_fars_data():
-    """Load real FARS accident data and compute daily fatality counts."""
+def load_real_fars_csv():
+    """Load real FARS accident CSV data and compute daily fatality counts."""
     all_accidents = []
     for year in range(2017, 2023):
         year_dir = os.path.join(DATA_DIR, f"fars_{year}")
-        # FARS accident file contains one row per crash
         for fname in os.listdir(year_dir):
             if fname.upper().startswith("ACCIDENT") and fname.lower().endswith(".csv"):
                 df = pd.read_csv(os.path.join(year_dir, fname), encoding='latin-1')
@@ -132,7 +228,6 @@ def load_real_fars_data():
                 break
 
     accidents = pd.concat(all_accidents, ignore_index=True)
-    # Create date column: FARS uses MONTH, DAY columns
     accidents["date"] = pd.to_datetime(
         accidents[["YEAR", "MONTH", "DAY"]].rename(
             columns={"YEAR": "year", "MONTH": "month", "DAY": "day"}
@@ -141,13 +236,12 @@ def load_real_fars_data():
     )
     accidents = accidents.dropna(subset=["date"])
 
-    # FATALS column contains the number of fatalities per crash
     daily = accidents.groupby("date").agg(
         fatalities=("FATALS", "sum"),
         crashes=("FATALS", "count")
     ).reset_index()
 
-    return daily, accidents
+    return daily
 
 
 def generate_synthetic_fars_data():
@@ -1031,23 +1125,27 @@ def main():
 
     # --- Load or generate data ---
     print("\n\n--- DATA PREPARATION ---")
-    if check_real_fars_data():
-        print("  Loading real FARS data...")
-        daily_data, accident_data = load_real_fars_data()
-        using_real_data = True
+    if check_xlsx_data():
+        daily_data = load_xlsx_data(years=range(2017, 2023))
+        xlsx_name = os.path.basename(_find_xlsx_path())
+        data_source = f"real ({xlsx_name})"
+    elif check_real_fars_csv():
+        print("  Loading real FARS CSV data...")
+        daily_data = load_real_fars_csv()
+        data_source = "real (FARS CSV - fatality counts)"
     else:
-        print("  Real FARS data not found in data/fars_*/")
-        print("  To use real data, download from:")
-        print("    https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars")
+        print("  No real FARS data found.")
+        print("  To use real data, place CrashReport.xlsx in project root or")
+        print("  download FARS CSVs from NHTSA into data/fars_{year}/ directories.")
         daily_data = generate_synthetic_fars_data()
-        using_real_data = False
+        data_source = "synthetic (calibrated to paper statistics)"
 
     streaming_data = generate_synthetic_streaming_data()
 
     print(f"\n  Daily fatality data: {len(daily_data)} days")
     print(f"  Date range: {daily_data['date'].min().date()} to {daily_data['date'].max().date()}")
     print(f"  Mean daily fatalities: {daily_data['fatalities'].mean():.1f}")
-    print(f"  Using {'real' if using_real_data else 'synthetic'} FARS data")
+    print(f"  Data source: {data_source}")
 
     # --- Streaming analysis ---
     print("\n\n--- STREAMING VOLUME ANALYSIS ---")
@@ -1169,7 +1267,7 @@ def main():
     print("\n\n" + "=" * 70)
     print("SUMMARY OF KEY FINDINGS")
     print("=" * 70)
-    print(f"\nData: {'Real FARS data' if using_real_data else 'Synthetic data (calibrated to paper statistics)'}")
+    print(f"\nData source: {data_source}")
     print(f"\nPrimary Analysis:")
     print(f"  Adjusted fatalities on album release days: {comparison_results['release_mean']:.1f}")
     print(f"  Adjusted fatalities on surrounding days:   {comparison_results['surrounding_mean']:.1f}")
@@ -1187,12 +1285,12 @@ def main():
     for f in sorted(os.listdir(OUTPUT_DIR)):
         print(f"  {f}")
 
+    if "CrashReport" in data_source and "fatalities" not in data_source:
+        print("\n  NOTE: CrashReport.xlsx provides fatal crash counts (not fatality counts).")
+        print("  Each fatal crash averages ~1.08 fatalities, so absolute counts are ~8% lower")
+        print("  than the paper's fatality-based numbers. Relative effects (%) are comparable.")
+
     print("\n" + "=" * 70)
-    print("NOTE: To reproduce with real FARS data, download from:")
-    print("  https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars")
-    print("  Place extracted CSV files in data/fars_2017/ through data/fars_2022/")
-    print("  The script will automatically detect and use real data.")
-    print("=" * 70)
 
 
 if __name__ == "__main__":

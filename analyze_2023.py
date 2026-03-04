@@ -1,8 +1,8 @@
 """
-Extension analysis: Applying the Jena et al. (2026) methodology to 2023 data.
+Extension analysis: Top 10 most-streamed albums across 2017-2023.
 
-Uses the top most-streamed albums released in 2023 and FARS fatality data
-for 2023 to test whether the album-release/fatality relationship persists.
+Re-ranks all albums by first-day Spotify streams across the full 2017-2023
+period, then runs the same event study methodology as Jena et al.
 """
 
 import os
@@ -27,45 +27,63 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 sys.path.insert(0, BASE_DIR)
 from reproduce_analysis import (
     get_federal_holidays, load_xlsx_data, check_xlsx_data,
-    generate_synthetic_streaming_data, create_event_study_dataset,
+    create_event_study_dataset, ALBUM_RELEASES,
 )
 
 # ============================================================================
-# Top 10 Most Streamed Albums in a Single Day, 2023
+# Top 10 Most Streamed Albums in a Single Day, 2017-2023
+# Merges original 2017-2022 list with 2023 releases, re-ranked
 # (Sources: Spotify Charts, Chart Data, Billboard)
 # ============================================================================
-ALBUM_RELEASES_2023 = pd.DataFrame([
+ALL_ALBUMS = pd.DataFrame([
+    # --- From original 2017-2022 ---
+    {"date": "2022-10-21", "album": "Midnights", "artist": "Taylor Swift",
+     "tracks": 20, "first_day_streams": 184_695_609},
+    {"date": "2021-09-03", "album": "Certified Lover Boy", "artist": "Drake",
+     "tracks": 21, "first_day_streams": 153_441_565},
+    {"date": "2022-05-06", "album": "Un Verano Sin Ti", "artist": "Bad Bunny",
+     "tracks": 23, "first_day_streams": 145_811_373},
+    {"date": "2018-06-29", "album": "Scorpion", "artist": "Drake",
+     "tracks": 25, "first_day_streams": 132_384_203},
+    {"date": "2022-05-13", "album": "Mr. Morale & the Big Steppers", "artist": "Kendrick Lamar",
+     "tracks": 18, "first_day_streams": 99_582_729},
+    {"date": "2022-05-20", "album": "Harry's House", "artist": "Harry Styles",
+     "tracks": 13, "first_day_streams": 97_621_794},
+    {"date": "2022-11-04", "album": "Her Loss", "artist": "Drake and 21 Savage",
+     "tracks": 16, "first_day_streams": 97_390_844},
+    {"date": "2021-08-29", "album": "Donda", "artist": "Kanye West",
+     "tracks": 25, "first_day_streams": 94_455_883},
+    {"date": "2021-11-12", "album": "Red (Taylor's Version)", "artist": "Taylor Swift",
+     "tracks": 30, "first_day_streams": 90_556_180},
+    {"date": "2020-07-24", "album": "Folklore", "artist": "Taylor Swift",
+     "tracks": 16, "first_day_streams": 79_443_136},
+    # --- 2023 releases ---
     {"date": "2023-10-27", "album": "1989 (Taylor's Version)", "artist": "Taylor Swift",
-     "tracks": 21, "first_day_streams": 176_000_000, "rank": 1},
+     "tracks": 21, "first_day_streams": 176_000_000},
     {"date": "2023-10-13", "album": "Nadie Sabe Lo Que Va a Pasar Mañana", "artist": "Bad Bunny",
-     "tracks": 22, "first_day_streams": 145_900_000, "rank": 2},
+     "tracks": 22, "first_day_streams": 145_900_000},
     {"date": "2023-07-28", "album": "UTOPIA", "artist": "Travis Scott",
-     "tracks": 19, "first_day_streams": 128_500_000, "rank": 3},
+     "tracks": 19, "first_day_streams": 128_500_000},
     {"date": "2023-07-07", "album": "Speak Now (Taylor's Version)", "artist": "Taylor Swift",
-     "tracks": 22, "first_day_streams": 126_000_000, "rank": 4},
+     "tracks": 22, "first_day_streams": 126_000_000},
     {"date": "2023-10-06", "album": "For All the Dogs", "artist": "Drake",
-     "tracks": 23, "first_day_streams": 109_000_000, "rank": 5},
-    {"date": "2023-09-08", "album": "GUTS", "artist": "Olivia Rodrigo",
-     "tracks": 12, "first_day_streams": 60_900_000, "rank": 6},
-    {"date": "2023-03-03", "album": "One Thing at a Time", "artist": "Morgan Wallen",
-     "tracks": 36, "first_day_streams": 52_300_000, "rank": 7},
-    {"date": "2023-12-08", "album": "Pink Friday 2", "artist": "Nicki Minaj",
-     "tracks": 22, "first_day_streams": 52_000_000, "rank": 8},
-    {"date": "2023-06-23", "album": "Génesis", "artist": "Peso Pluma",
-     "tracks": 26, "first_day_streams": 45_000_000, "rank": 9},
-    {"date": "2023-03-24", "album": "Did You Know That There's a Tunnel Under Ocean Blvd",
-     "artist": "Lana Del Rey", "tracks": 16, "first_day_streams": 43_000_000, "rank": 10},
+     "tracks": 23, "first_day_streams": 109_000_000},
 ])
-ALBUM_RELEASES_2023["date"] = pd.to_datetime(ALBUM_RELEASES_2023["date"])
+ALL_ALBUMS["date"] = pd.to_datetime(ALL_ALBUMS["date"])
+ALL_ALBUMS = ALL_ALBUMS.sort_values("first_day_streams", ascending=False).reset_index(drop=True)
+ALL_ALBUMS["rank"] = ALL_ALBUMS.index + 1
+
+# Top 10 across 2017-2023
+TOP10_2017_2023 = ALL_ALBUMS.head(10).copy()
 
 
-def create_event_study_dataset_2023(daily_data, album_releases, window=10):
-    """Create album-day level dataset for 2023 event study."""
-    release_dates = album_releases["date"].values
-    holidays = get_federal_holidays(range(2023, 2024))
+def create_event_study_dataset_extended(daily_data, album_releases, window=10):
+    """Create album-day level dataset for extended event study."""
+    holidays = get_federal_holidays(range(2017, 2024))
 
     records = []
-    for i, rd in enumerate(release_dates):
+    for i, (_, album) in enumerate(album_releases.iterrows()):
+        rd = album["date"]
         for day_offset in range(-window, window + 1):
             d = rd + pd.Timedelta(days=day_offset)
             d_ts = pd.Timestamp(d)
@@ -76,8 +94,8 @@ def create_event_study_dataset_2023(daily_data, album_releases, window=10):
 
             records.append({
                 "album_idx": i,
-                "album": album_releases.iloc[i]["album"],
-                "artist": album_releases.iloc[i]["artist"],
+                "album": album["album"],
+                "artist": album["artist"],
                 "date": d_ts,
                 "day_relative": day_offset,
                 "fatalities": match.iloc[0]["fatalities"],
@@ -139,10 +157,11 @@ def run_comparison(event_df):
     }
 
 
-def run_placebo_test(daily_data, observed_effect, n_iterations=1000):
-    """Run placebo falsification test for 2023."""
+def run_placebo_test(daily_data, observed_effect, n_albums=10, n_iterations=1000):
+    """Run placebo falsification test."""
     np.random.seed(789)
-    holidays = get_federal_holidays(range(2023, 2024))
+    years = sorted(daily_data["date"].dt.year.unique())
+    holidays = get_federal_holidays(years)
     all_dates = daily_data["date"].values
     fridays = daily_data[daily_data["date"].dt.dayofweek == 4]["date"].values
 
@@ -152,7 +171,7 @@ def run_placebo_test(daily_data, observed_effect, n_iterations=1000):
     for _ in range(n_iterations):
         for dates_pool, effects_list in [(all_dates, random_date_effects),
                                           (fridays, random_friday_effects)]:
-            placebo = np.random.choice(dates_pool, size=10, replace=False)
+            placebo = np.random.choice(dates_pool, size=n_albums, replace=False)
             records = []
             for rd in placebo:
                 rd = pd.Timestamp(rd)
@@ -183,36 +202,46 @@ def run_placebo_test(daily_data, observed_effect, n_iterations=1000):
 
 def main():
     print("=" * 70)
-    print("2023 EXTENSION ANALYSIS")
-    print("Album Releases and Traffic Fatalities in 2023")
+    print("EXTENDED ANALYSIS: Top 10 Albums Across 2017-2023")
     print("=" * 70)
 
-    # --- Table: 2023 Albums ---
-    print("\n--- Top 10 Most Streamed Albums (2023) ---")
-    print(ALBUM_RELEASES_2023[["rank", "date", "album", "artist", "tracks",
-                                "first_day_streams"]].to_string(index=False))
+    # --- Show all candidate albums ---
+    print("\n--- All Candidate Albums (2017-2023) ---")
+    print(ALL_ALBUMS[["rank", "date", "album", "artist",
+                       "first_day_streams"]].to_string(index=False))
 
-    # --- Load 2023 data ---
+    print(f"\n--- Top 10 Selected ---")
+    top10 = TOP10_2017_2023
+    for _, row in top10.iterrows():
+        marker = " [2023]" if row["date"].year == 2023 else ""
+        print(f"  {row['rank']:>2}. {row['album']:<45} {row['artist']:<20} "
+              f"{row['first_day_streams']/1e6:>6.1f}M  ({row['date'].date()}){marker}")
+
+    n_from_2023 = (top10["date"].dt.year == 2023).sum()
+    n_from_orig = len(top10) - n_from_2023
+    print(f"\n  {n_from_orig} from 2017-2022, {n_from_2023} from 2023")
+
+    # --- Load data ---
     print("\n\n--- DATA ---")
     if not check_xlsx_data():
-        print("ERROR: No fatalities.xlsx found. Cannot run 2023 analysis.")
+        print("ERROR: No fatalities.xlsx found.")
         return
 
-    daily_2023 = load_xlsx_data(years=range(2023, 2024))
-    print(f"  Days: {len(daily_2023)}")
-    print(f"  Date range: {daily_2023['date'].min().date()} to {daily_2023['date'].max().date()}")
-    print(f"  Mean daily fatalities: {daily_2023['fatalities'].mean():.1f}")
+    daily_all = load_xlsx_data(years=range(2017, 2024))
+    print(f"  Days: {len(daily_all)}")
+    print(f"  Date range: {daily_all['date'].min().date()} to {daily_all['date'].max().date()}")
+    print(f"  Mean daily fatalities: {daily_all['fatalities'].mean():.1f}")
 
-    # --- Event study ---
-    print("\n\n--- EVENT STUDY ---")
-    event_df = create_event_study_dataset_2023(daily_2023, ALBUM_RELEASES_2023)
-    print(f"  Observations: {len(event_df)} ({len(ALBUM_RELEASES_2023)} albums x 21 days)")
+    # --- Event study with all top 10 across 2017-2023 ---
+    print("\n\n--- EVENT STUDY (Top 10 across 2017-2023) ---")
+    event_df = create_event_study_dataset_extended(daily_all, top10)
+    print(f"  Observations: {len(event_df)} ({len(top10)} albums x 21 days)")
 
     event_results, event_model = run_event_study(event_df)
     day0 = event_results[event_results["day"] == 0].iloc[0]
-    print(f"\n  Day 0 coefficient: {day0['coef']:.1f} (95% CI {day0['ci_lower']:.1f} to {day0['ci_upper']:.1f})")
+    print(f"\n  Day 0 coefficient: {day0['coef']:.1f} "
+          f"(95% CI {day0['ci_lower']:.1f} to {day0['ci_upper']:.1f})")
 
-    # --- Release vs surrounding ---
     comparison = run_comparison(event_df)
     print(f"\n  Release day fatalities:     {comparison['release_mean']:.1f}")
     print(f"  Surrounding day fatalities: {comparison['surrounding_mean']:.1f}")
@@ -221,9 +250,24 @@ def main():
     print(f"  Relative increase: {comparison['relative_increase']:.1f}%")
     print(f"  p-value: {comparison['p_value']:.4f}")
 
+    # --- Also run original 2017-2022 for comparison ---
+    print("\n\n--- ORIGINAL (Top 10 across 2017-2022, for comparison) ---")
+    daily_orig = load_xlsx_data(years=range(2017, 2023))
+    event_orig = create_event_study_dataset(daily_orig)
+    event_results_orig, _ = run_event_study(event_orig)
+    comparison_orig = run_comparison(event_orig)
+
+    print(f"  Release day fatalities:     {comparison_orig['release_mean']:.1f}")
+    print(f"  Surrounding day fatalities: {comparison_orig['surrounding_mean']:.1f}")
+    print(f"  Absolute increase: {comparison_orig['absolute_increase']:.1f} "
+          f"(95% CI {comparison_orig['ci_lower']:.1f} to {comparison_orig['ci_upper']:.1f})")
+    print(f"  Relative increase: {comparison_orig['relative_increase']:.1f}%")
+    print(f"  p-value: {comparison_orig['p_value']:.4f}")
+
     # --- Placebo test ---
-    print("\n\n--- PLACEBO TEST ---")
-    random_dates, random_fridays = run_placebo_test(daily_2023, comparison['absolute_increase'])
+    print("\n\n--- PLACEBO TEST (Top 10 across 2017-2023) ---")
+    random_dates, random_fridays = run_placebo_test(
+        daily_all, comparison['absolute_increase'], n_albums=len(top10))
     exceed_dates = np.sum(random_dates >= comparison['absolute_increase'])
     exceed_fridays = np.sum(random_fridays >= comparison['absolute_increase'])
     print(f"  Random dates: {exceed_dates}/1000 exceeded observed effect")
@@ -231,51 +275,46 @@ def main():
 
     # --- Adjacent Friday test ---
     print("\n\n--- ADJACENT FRIDAY TEST ---")
-    friday_releases = ALBUM_RELEASES_2023[ALBUM_RELEASES_2023["date"].dt.dayofweek == 4]
+    friday_releases = top10[top10["date"].dt.dayofweek == 4]
     release_fats = []
     control_fats = []
     for _, album in friday_releases.iterrows():
         rd = album["date"]
-        match = daily_2023[daily_2023["date"] == rd]
+        match = daily_all[daily_all["date"] == rd]
         if len(match) > 0:
             release_fats.append(match.iloc[0]["fatalities"])
         for offset in [-7, 7]:
             cd = rd + pd.Timedelta(days=offset)
-            match = daily_2023[daily_2023["date"] == cd]
+            match = daily_all[daily_all["date"] == cd]
             if len(match) > 0:
                 control_fats.append(match.iloc[0]["fatalities"])
 
+    or_est = None
     if release_fats and control_fats:
-        or_est = (np.mean(release_fats)) / (np.mean(control_fats))
+        or_est = np.mean(release_fats) / np.mean(control_fats)
         print(f"  Friday releases: {len(friday_releases)}")
         print(f"  Mean fatalities on release Fridays: {np.mean(release_fats):.1f}")
         print(f"  Mean fatalities on control Fridays: {np.mean(control_fats):.1f}")
-        print(f"  Odds ratio: {or_est:.2f}")
+        print(f"  Ratio: {or_est:.2f}")
 
-    # --- Save results for comparison script ---
-    results_2023 = {
-        "period": "2023",
-        "n_albums": len(ALBUM_RELEASES_2023),
+    # --- Save results ---
+    results_extended = {
+        "period": "2017-2023",
+        "n_albums": len(top10),
+        "n_albums_from_2023": int(n_from_2023),
+        "albums": top10[["rank", "album", "artist", "first_day_streams"]].to_dict(orient="records"),
         "comparison": comparison,
         "event_study": event_results.to_dict(orient="records"),
         "placebo_exceed_dates": int(exceed_dates),
         "placebo_exceed_fridays": int(exceed_fridays),
-        "adjacent_friday_or": float(or_est) if release_fats and control_fats else None,
-        "mean_daily_fatalities": float(daily_2023["fatalities"].mean()),
+        "adjacent_friday_or": float(or_est) if or_est else None,
+        "mean_daily_fatalities": float(daily_all["fatalities"].mean()),
     }
 
-    with open(os.path.join(OUTPUT_DIR, "results_2023.json"), "w") as f:
-        json.dump(results_2023, f, indent=2)
-    print(f"\n  Results saved to {OUTPUT_DIR}/results_2023.json")
+    with open(os.path.join(OUTPUT_DIR, "results_2017_2023.json"), "w") as f:
+        json.dump(results_extended, f, indent=2)
 
-    # --- Also save 2017-2022 results for comparison ---
-    from reproduce_analysis import ALBUM_RELEASES
-    daily_orig = load_xlsx_data(years=range(2017, 2023))
-    event_orig = create_event_study_dataset(daily_orig)
-    event_results_orig, _ = run_event_study(event_orig)
-    comparison_orig = run_comparison(event_orig)
-
-    results_orig = {
+    results_orig_save = {
         "period": "2017-2022",
         "n_albums": len(ALBUM_RELEASES),
         "comparison": comparison_orig,
@@ -284,19 +323,24 @@ def main():
     }
 
     with open(os.path.join(OUTPUT_DIR, "results_2017_2022.json"), "w") as f:
-        json.dump(results_orig, f, indent=2)
+        json.dump(results_orig_save, f, indent=2)
 
+    # --- Summary ---
     print("\n" + "=" * 70)
     print("SUMMARY")
     print("=" * 70)
-    print(f"\n{'Metric':<40} {'2017-2022':>12} {'2023':>12}")
-    print("-" * 64)
-    print(f"{'Release day fatalities':<40} {comparison_orig['release_mean']:>12.1f} {comparison['release_mean']:>12.1f}")
-    print(f"{'Surrounding day fatalities':<40} {comparison_orig['surrounding_mean']:>12.1f} {comparison['surrounding_mean']:>12.1f}")
-    print(f"{'Absolute increase':<40} {comparison_orig['absolute_increase']:>12.1f} {comparison['absolute_increase']:>12.1f}")
-    print(f"{'Relative increase (%)':<40} {comparison_orig['relative_increase']:>11.1f}% {comparison['relative_increase']:>11.1f}%")
-    print(f"{'p-value':<40} {comparison_orig['p_value']:>12.4f} {comparison['p_value']:>12.4f}")
+    print(f"\n{'Metric':<40} {'2017-2022':>15} {'2017-2023':>15}")
+    print(f"{'':40} {'(original 10)':>15} {'(new top 10)':>15}")
+    print("-" * 70)
+    print(f"{'Albums analyzed':<40} {comparison_orig['release_mean']:>15.0f} {len(top10):>15}")
+    print(f"{'Release day fatalities':<40} {comparison_orig['release_mean']:>15.1f} {comparison['release_mean']:>15.1f}")
+    print(f"{'Surrounding day fatalities':<40} {comparison_orig['surrounding_mean']:>15.1f} {comparison['surrounding_mean']:>15.1f}")
+    print(f"{'Absolute increase':<40} {comparison_orig['absolute_increase']:>15.1f} {comparison['absolute_increase']:>15.1f}")
+    print(f"{'Relative increase (%)':<40} {comparison_orig['relative_increase']:>14.1f}% {comparison['relative_increase']:>14.1f}%")
+    print(f"{'p-value':<40} {comparison_orig['p_value']:>15.4f} {comparison['p_value']:>15.4f}")
     print("=" * 70)
+
+    print(f"\n  Results saved to {OUTPUT_DIR}/results_2017_2023.json")
 
 
 if __name__ == "__main__":

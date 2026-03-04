@@ -1,14 +1,14 @@
 """
-Comparison visualization: 2017-2022 original analysis vs 2023 extension.
+Comparison visualization: Original top-10 (2017-2022) vs re-ranked top-10 (2017-2023).
 
-Creates a publication-quality multi-panel figure comparing the two periods:
+Creates a publication-quality multi-panel figure comparing the two album sets:
   Panel A (left, wide): Side-by-side event study plots
   Panel B (top-right):  Grouped bar chart of release-day vs surrounding-day fatalities
   Panel C (bottom-right): Summary statistics table
 
 Reads:
-  output/results_2017_2022.json
-  output/results_2023.json
+  output/results_2017_2022.json  (original paper's top 10 albums, 2017-2022 data)
+  output/results_2017_2023.json  (re-ranked top 10 albums across 2017-2023)
 
 Writes:
   output/comparison_2017_2022_vs_2023.png
@@ -31,7 +31,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_DIR = os.path.join(BASE_DIR, "output")
 
 RESULTS_ORIG = os.path.join(OUTPUT_DIR, "results_2017_2022.json")
-RESULTS_2023 = os.path.join(OUTPUT_DIR, "results_2023.json")
+RESULTS_2023 = os.path.join(OUTPUT_DIR, "results_2017_2023.json")
 OUTPUT_PNG = os.path.join(OUTPUT_DIR, "comparison_2017_2022_vs_2023.png")
 
 # ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ BLUE_DARK = "#1b4f72"
 BLUE_MED = "#2980b9"
 BLUE_LIGHT = "#aed6f1"
 
-# Orange/red for 2023
+# Orange/red for 2017-2023 (re-ranked)
 ORANGE_DARK = "#922b21"
 ORANGE_MED = "#e74c3c"
 ORANGE_LIGHT = "#f5b7b1"
@@ -50,7 +50,7 @@ ORANGE_LIGHT = "#f5b7b1"
 
 def load_results():
     """Load the two JSON result files and return them as dicts."""
-    for path, label in [(RESULTS_ORIG, "2017-2022"), (RESULTS_2023, "2023")]:
+    for path, label in [(RESULTS_ORIG, "2017-2022"), (RESULTS_2023, "2017-2023")]:
         if not os.path.isfile(path):
             print(f"ERROR: {path} not found. Run analyze_2023.py first to "
                   f"generate the {label} results.")
@@ -100,7 +100,7 @@ def plot_panel_a(ax, orig, ext):
         yerr=[err_lo_e, err_hi_e],
         fmt='s', markersize=5, capsize=3, capthick=1.2, linewidth=1.2,
         color=ORANGE_MED, ecolor=ORANGE_LIGHT, markeredgecolor=ORANGE_DARK,
-        label=f"2023 (n={ext['n_albums']} albums)",
+        label=f"2017\u20132023 re-ranked (n={ext['n_albums']} albums)",
         zorder=3,
     )
 
@@ -126,7 +126,7 @@ def plot_panel_a(ax, orig, ext):
 
 def plot_panel_b(ax, orig, ext):
     """Panel B: grouped bar chart -- release day vs surrounding days."""
-    labels = ["2017\u20132022", "2023"]
+    labels = ["2017\u20132022\n(original)", "2017\u20132023\n(re-ranked)"]
     release_vals = [orig["comparison"]["release_mean"],
                     ext["comparison"]["release_mean"]]
     surround_vals = [orig["comparison"]["surrounding_mean"],
@@ -200,7 +200,7 @@ def plot_panel_c(ax, orig, ext):
         "No. of albums",
         "Mean daily fatalities",
     ]
-    col_labels = ["", "2017\u20132022", "2023"]
+    col_labels = ["", "2017\u20132022\n(original)", "2017\u20132023\n(re-ranked)"]
 
     cell_text = [
         [row_labels[0], f"{co['release_mean']:.1f}", f"{ce['release_mean']:.1f}"],
@@ -255,10 +255,10 @@ def print_text_summary(orig, ext):
     ce = ext["comparison"]
 
     print("=" * 72)
-    print("COMPARISON: 2017-2022 (Original) vs 2023 (Extension)")
+    print("COMPARISON: 2017-2022 (Original Top 10) vs 2017-2023 (Re-ranked Top 10)")
     print("=" * 72)
 
-    header = f"{'Metric':<36} {'2017-2022':>14} {'2023':>14}"
+    header = f"{'Metric':<36} {'2017-2022':>14} {'2017-2023':>14}"
     print(header)
     print("-" * 72)
     print(f"{'No. of albums':<36} {orig['n_albums']:>14} {ext['n_albums']:>14}")
@@ -285,23 +285,23 @@ def print_text_summary(orig, ext):
 
     # Directional interpretation
     if ce['absolute_increase'] > 0 and ce['p_value'] < 0.05:
-        conclusion = ("The 2023 data REPLICATES the original finding: album releases "
-                      "are associated with a statistically significant increase in "
-                      "traffic fatalities.")
+        conclusion = ("The re-ranked 2017-2023 top 10 REPLICATES the original finding: "
+                      "album releases are associated with a statistically significant "
+                      "increase in traffic fatalities.")
     elif ce['absolute_increase'] > 0 and ce['p_value'] >= 0.05:
-        conclusion = ("The 2023 data shows a POSITIVE but non-significant effect. "
-                      "The direction is consistent with the original finding, but "
+        conclusion = ("The re-ranked 2017-2023 top 10 shows a POSITIVE but non-significant "
+                      "effect. The direction is consistent with the original finding, but "
                       "the effect does not reach statistical significance.")
     elif ce['absolute_increase'] <= 0:
-        conclusion = ("The 2023 data does NOT replicate the original finding: "
-                      "no positive association between album releases and fatalities "
-                      "was observed.")
+        conclusion = ("The re-ranked 2017-2023 top 10 does NOT replicate the original "
+                      "finding: no positive association between album releases and "
+                      "fatalities was observed.")
     else:
         conclusion = "Unable to draw a clear conclusion from the 2023 data."
 
     # Effect size comparison
     ratio = ce['absolute_increase'] / co['absolute_increase'] if co['absolute_increase'] != 0 else float('nan')
-    print(f"\nEffect size ratio (2023 / 2017-2022): {ratio:.2f}")
+    print(f"\nEffect size ratio (2017-2023 / 2017-2022): {ratio:.2f}")
     print(f"\nConclusion: {conclusion}")
     print("=" * 72)
 
@@ -334,7 +334,7 @@ def main():
     plot_panel_c(ax_c, orig, ext)
 
     fig.suptitle(
-        "Album Releases and Traffic Fatalities: 2017\u20132022 vs 2023",
+        "Album Releases and Traffic Fatalities: Original Top 10 (2017\u20132022) vs Re-ranked Top 10 (2017\u20132023)",
         fontsize=15, fontweight="bold", y=0.98,
     )
 

@@ -24,6 +24,11 @@
     border-bottom: 1px solid #ccc;
     padding-bottom: 4px;
   }
+  h3 {
+    font-size: 14px;
+    color: #555;
+    margin-top: 20px;
+  }
   .subtitle {
     font-size: 13px;
     color: #666;
@@ -64,6 +69,9 @@
   .callout-green {
     border-left-color: #27ae60;
   }
+  .callout-blue {
+    border-left-color: #2980b9;
+  }
   .figure-container {
     text-align: center;
     margin: 24px 0;
@@ -85,12 +93,48 @@
   .no { color: #c0392b; font-weight: bold; }
   .mostly { color: #e67e22; font-weight: bold; }
   ul { font-size: 13px; }
+  .spec-box {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .spec-box code {
+    background: #eee;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+  }
+  .new-tag {
+    background: #3498db;
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    vertical-align: middle;
+  }
+  .dropped-tag {
+    background: #95a5a6;
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    vertical-align: middle;
+  }
   .footer {
     font-size: 11px;
     color: #999;
     margin-top: 40px;
     border-top: 1px solid #ddd;
     padding-top: 8px;
+  }
+  @media print {
+    .page-break { page-break-before: always; }
   }
 </style>
 </head>
@@ -100,7 +144,7 @@
 <p class="subtitle">
   Reference: Patel, Worsham, Liu &amp; Jena — NBER Working Paper 34866, Feb 2026<br>
   Data: NHTSA Fatality Analysis Reporting System (FARS), real daily fatality counts<br>
-  Analysis date: March 2026
+  Analysis date: March 2026 &nbsp;|&nbsp; Back-of-the-envelope replication check
 </p>
 
 <h2>Executive Summary</h2>
@@ -110,7 +154,36 @@
   the effect entirely.</strong> The five 2023 mega-releases show zero association with traffic fatalities.
 </div>
 
+<!-- ===== MODEL SPECIFICATION ===== -->
+<h2>Model Specification</h2>
+<div class="spec-box">
+  <strong>Outcome:</strong> National daily count of fatal motor-vehicle crash fatalities (FARS)<br><br>
+
+  <strong>Primary comparison model:</strong><br>
+  <code>fatalities ~ is_release_day + C(dow) + C(week_of_year) + C(year) + is_holiday</code><br>
+  OLS regression at the album&ndash;day level. <code>is_release_day</code> = 1 on the album release date, 0 on surrounding days.<br><br>
+
+  <strong>Event study model:</strong><br>
+  <code>fatalities ~ day_m10 + day_m9 + &hellip; + day_p0 + &hellip; + day_p10 + C(dow) + C(week_of_year) + C(year) + is_holiday</code><br>
+  Separate indicator for each day &minus;10 to +10 relative to release. Reference category = day &minus;1.<br><br>
+
+  <strong>Fixed effects:</strong> Day of week (Mon–Sun), week of year (1–52), calendar year, federal holiday indicator<br>
+  <strong>Event window:</strong> &plusmn;10 days around each album release<br>
+  <strong>Sample:</strong> Top 10 albums by first-day Spotify streams in the analysis period<br>
+  <strong>Adjusted means:</strong> Model-predicted fatalities with <code>is_release_day</code> set to 0 (surrounding) or 1 (release)<br>
+  <strong>Confidence intervals:</strong> 95% CIs from OLS standard errors<br>
+  <strong>Placebo test:</strong> 1,000 iterations drawing 10 random dates (or random Fridays); count how many produce an effect &ge; observed<br>
+  <strong>Software:</strong> Python, statsmodels (OLS via <code>smf.ols</code>), scipy, pandas
+</div>
+
+<p style="font-size:13px;">
+  This is a straightforward back-of-the-envelope check — we used the same regression specification described
+  in the paper and applied it to the publicly available FARS data. No exotic modeling choices; the goal was
+  to see whether the headline result holds up with one more year of data.
+</p>
+
 <!-- ===== FIGURE ===== -->
+<div class="page-break"></div>
 <h2>Figure: Side-by-Side Comparison</h2>
 <div class="figure-container">
   <img src="comparison_2017_2022_vs_2023.png" alt="Comparison of 2017-2022 vs 2017-2023 results">
@@ -243,6 +316,81 @@
   <li>Adjacent-Friday odds ratio is 0.99 — completely flat</li>
 </ul>
 
+<!-- ===== ALBUM TABLES ===== -->
+<div class="page-break"></div>
+<h2>Album Tables</h2>
+
+<h3>Table 1: Top 10 Most Streamed Albums, 2017–2022 (Original Run)</h3>
+<table>
+  <tr>
+    <th>Rank</th>
+    <th>Album</th>
+    <th>Artist</th>
+    <th>Release Date</th>
+    <th>Tracks</th>
+    <th>First-Day Streams</th>
+  </tr>
+  <tr><td>1</td><td>Midnights</td><td>Taylor Swift</td><td>2022-10-21</td><td>20</td><td>184,695,609</td></tr>
+  <tr><td>2</td><td>Certified Lover Boy</td><td>Drake</td><td>2021-09-03</td><td>21</td><td>153,441,565</td></tr>
+  <tr><td>3</td><td>Un Verano Sin Ti</td><td>Bad Bunny</td><td>2022-05-06</td><td>23</td><td>145,811,373</td></tr>
+  <tr><td>4</td><td>Scorpion</td><td>Drake</td><td>2018-06-29</td><td>25</td><td>132,384,203</td></tr>
+  <tr><td>5</td><td>Mr. Morale &amp; the Big Steppers</td><td>Kendrick Lamar</td><td>2022-05-13</td><td>18</td><td>99,582,729</td></tr>
+  <tr><td>6</td><td>Harry's House</td><td>Harry Styles</td><td>2022-05-20</td><td>13</td><td>97,621,794</td></tr>
+  <tr><td>7</td><td>Her Loss</td><td>Drake &amp; 21 Savage</td><td>2022-11-04</td><td>16</td><td>97,390,844</td></tr>
+  <tr><td>8</td><td>Donda</td><td>Kanye West</td><td>2021-08-29</td><td>25</td><td>94,455,883</td></tr>
+  <tr><td>9</td><td>Red (Taylor's Version)</td><td>Taylor Swift</td><td>2021-11-12</td><td>30</td><td>90,556,180</td></tr>
+  <tr><td>10</td><td>Folklore</td><td>Taylor Swift</td><td>2020-07-24</td><td>16</td><td>79,443,136</td></tr>
+</table>
+
+<h3>Table 2: Top 10 Most Streamed Albums, 2017–2023 (Extended Run, Re-ranked)</h3>
+<table>
+  <tr>
+    <th>Rank</th>
+    <th>Album</th>
+    <th>Artist</th>
+    <th>Release Date</th>
+    <th>First-Day Streams</th>
+    <th></th>
+  </tr>
+  <tr><td>1</td><td>Midnights</td><td>Taylor Swift</td><td>2022-10-21</td><td>184,695,609</td><td></td></tr>
+  <tr><td>2</td><td>1989 (Taylor's Version)</td><td>Taylor Swift</td><td>2023-10-27</td><td>176,000,000</td><td><span class="new-tag">NEW</span></td></tr>
+  <tr><td>3</td><td>Certified Lover Boy</td><td>Drake</td><td>2021-09-03</td><td>153,441,565</td><td></td></tr>
+  <tr><td>4</td><td>Nadie Sabe Lo Que Va a Pasar Ma&ntilde;ana</td><td>Bad Bunny</td><td>2023-10-13</td><td>145,900,000</td><td><span class="new-tag">NEW</span></td></tr>
+  <tr><td>5</td><td>Un Verano Sin Ti</td><td>Bad Bunny</td><td>2022-05-06</td><td>145,811,373</td><td></td></tr>
+  <tr><td>6</td><td>Scorpion</td><td>Drake</td><td>2018-06-29</td><td>132,384,203</td><td></td></tr>
+  <tr><td>7</td><td>UTOPIA</td><td>Travis Scott</td><td>2023-07-28</td><td>128,500,000</td><td><span class="new-tag">NEW</span></td></tr>
+  <tr><td>8</td><td>Speak Now (Taylor's Version)</td><td>Taylor Swift</td><td>2023-07-07</td><td>126,000,000</td><td><span class="new-tag">NEW</span></td></tr>
+  <tr><td>9</td><td>For All the Dogs</td><td>Drake</td><td>2023-10-06</td><td>109,000,000</td><td><span class="new-tag">NEW</span></td></tr>
+  <tr><td>10</td><td>Mr. Morale &amp; the Big Steppers</td><td>Kendrick Lamar</td><td>2022-05-13</td><td>99,582,729</td><td></td></tr>
+</table>
+
+<h3>Table 3: All 15 Albums Across Both Periods</h3>
+<table>
+  <tr>
+    <th>#</th>
+    <th>Album</th>
+    <th>Artist</th>
+    <th>Release Date</th>
+    <th>First-Day Streams</th>
+    <th>Included In</th>
+  </tr>
+  <tr><td>1</td><td>Midnights</td><td>Taylor Swift</td><td>2022-10-21</td><td>184,695,609</td><td>Both</td></tr>
+  <tr><td>2</td><td>1989 (Taylor's Version)</td><td>Taylor Swift</td><td>2023-10-27</td><td>176,000,000</td><td><span class="new-tag">2023 only</span></td></tr>
+  <tr><td>3</td><td>Certified Lover Boy</td><td>Drake</td><td>2021-09-03</td><td>153,441,565</td><td>Both</td></tr>
+  <tr><td>4</td><td>Nadie Sabe Lo Que Va a Pasar Ma&ntilde;ana</td><td>Bad Bunny</td><td>2023-10-13</td><td>145,900,000</td><td><span class="new-tag">2023 only</span></td></tr>
+  <tr><td>5</td><td>Un Verano Sin Ti</td><td>Bad Bunny</td><td>2022-05-06</td><td>145,811,373</td><td>Both</td></tr>
+  <tr><td>6</td><td>Scorpion</td><td>Drake</td><td>2018-06-29</td><td>132,384,203</td><td>Both</td></tr>
+  <tr><td>7</td><td>UTOPIA</td><td>Travis Scott</td><td>2023-07-28</td><td>128,500,000</td><td><span class="new-tag">2023 only</span></td></tr>
+  <tr><td>8</td><td>Speak Now (Taylor's Version)</td><td>Taylor Swift</td><td>2023-07-07</td><td>126,000,000</td><td><span class="new-tag">2023 only</span></td></tr>
+  <tr><td>9</td><td>For All the Dogs</td><td>Drake</td><td>2023-10-06</td><td>109,000,000</td><td><span class="new-tag">2023 only</span></td></tr>
+  <tr><td>10</td><td>Mr. Morale &amp; the Big Steppers</td><td>Kendrick Lamar</td><td>2022-05-13</td><td>99,582,729</td><td>Both</td></tr>
+  <tr><td>11</td><td>Harry's House</td><td>Harry Styles</td><td>2022-05-20</td><td>97,621,794</td><td><span class="dropped-tag">2017–22 only</span></td></tr>
+  <tr><td>12</td><td>Her Loss</td><td>Drake &amp; 21 Savage</td><td>2022-11-04</td><td>97,390,844</td><td><span class="dropped-tag">2017–22 only</span></td></tr>
+  <tr><td>13</td><td>Donda</td><td>Kanye West</td><td>2021-08-29</td><td>94,455,883</td><td><span class="dropped-tag">2017–22 only</span></td></tr>
+  <tr><td>14</td><td>Red (Taylor's Version)</td><td>Taylor Swift</td><td>2021-11-12</td><td>90,556,180</td><td><span class="dropped-tag">2017–22 only</span></td></tr>
+  <tr><td>15</td><td>Folklore</td><td>Taylor Swift</td><td>2020-07-24</td><td>79,443,136</td><td><span class="dropped-tag">2017–22 only</span></td></tr>
+</table>
+
 <!-- ===== ALBUM SWAP ===== -->
 <h2>What Changed in the Re-ranked Top 10?</h2>
 <table>
@@ -256,7 +404,7 @@
   </tr>
   <tr>
     <td>Her Loss (Drake &amp; 21 Savage)</td>
-    <td>Nadie Sabe Lo Que Va a Pasar Mañana (Bad Bunny)</td>
+    <td>Nadie Sabe Lo Que Va a Pasar Ma&ntilde;ana (Bad Bunny)</td>
   </tr>
   <tr>
     <td>Donda (Kanye West)</td>

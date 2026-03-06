@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Findings Summary: Music Streaming &amp; Traffic Fatalities</title>
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #222;
+    line-height: 1.5;
+  }
+  h1 {
+    font-size: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+  }
+  h2 {
+    font-size: 16px;
+    color: #444;
+    margin-top: 28px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 4px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #666;
+    margin-top: -8px;
+    margin-bottom: 20px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: center;
+  }
+  th {
+    background: #f4f4f4;
+    font-weight: bold;
+  }
+  td:first-child, th:first-child {
+    text-align: left;
+  }
+  .highlight-red {
+    background: #fce4e4;
+  }
+  .highlight-green {
+    background: #e4f5e4;
+  }
+  .callout {
+    background: #f8f8f8;
+    border-left: 4px solid #c0392b;
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+  .callout-green {
+    border-left-color: #27ae60;
+  }
+  .figure-container {
+    text-align: center;
+    margin: 24px 0;
+  }
+  .figure-container img {
+    max-width: 100%;
+    border: 1px solid #ddd;
+  }
+  .figure-caption {
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .bottom-line td {
+    font-size: 13px;
+  }
+  .yes { color: #27ae60; font-weight: bold; }
+  .no { color: #c0392b; font-weight: bold; }
+  .mostly { color: #e67e22; font-weight: bold; }
+  ul { font-size: 13px; }
+  .footer {
+    font-size: 11px;
+    color: #999;
+    margin-top: 40px;
+    border-top: 1px solid #ddd;
+    padding-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Reproduction &amp; Extension: "Smartphones, Online Music Streaming, and Traffic Fatalities"</h1>
+<p class="subtitle">
+  Reference: Patel, Worsham, Liu &amp; Jena — NBER Working Paper 34866, Feb 2026<br>
+  Data: NHTSA Fatality Analysis Reporting System (FARS), real daily fatality counts<br>
+  Analysis date: March 2026
+</p>
+
+<h2>Executive Summary</h2>
+<div class="callout">
+  We reproduced the paper's core analysis using real FARS data and extended it through 2023.
+  <strong>The original 2017–2022 finding largely replicates, but adding 2023 data eliminates
+  the effect entirely.</strong> The five 2023 mega-releases show zero association with traffic fatalities.
+</div>
+
+<!-- ===== FIGURE ===== -->
+<h2>Figure: Side-by-Side Comparison</h2>
+<div class="figure-container">
+  <img src="comparison_2017_2022_vs_2023.png" alt="Comparison of 2017-2022 vs 2017-2023 results">
+  <div class="figure-caption">
+    Panel A: Event study coefficients (day-by-day fatality changes around album releases).
+    Panel B: Mean release-day vs. surrounding-day fatalities.
+    Panel C: Summary statistics for both analysis windows.
+  </div>
+</div>
+
+<!-- ===== HEAD TO HEAD ===== -->
+<h2>Head-to-Head Comparison</h2>
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>Published Paper</th>
+    <th>Our 2017–2022 Run</th>
+    <th>Our 2017–2023 Run</th>
+  </tr>
+  <tr>
+    <td>Albums analyzed</td>
+    <td>10</td>
+    <td>10</td>
+    <td>10 (re-ranked)</td>
+  </tr>
+  <tr>
+    <td>Release-day fatalities</td>
+    <td>139.1</td>
+    <td>137.6</td>
+    <td>124.4</td>
+  </tr>
+  <tr>
+    <td>Surrounding-day fatalities</td>
+    <td>120.9</td>
+    <td>122.3</td>
+    <td>120.3</td>
+  </tr>
+  <tr>
+    <td><strong>Absolute increase</strong></td>
+    <td><strong>+18.2 deaths</strong></td>
+    <td><strong>+15.3 deaths</strong></td>
+    <td class="highlight-red"><strong>+4.1 deaths</strong></td>
+  </tr>
+  <tr>
+    <td>Relative increase</td>
+    <td>+15.1%</td>
+    <td>+12.5%</td>
+    <td class="highlight-red">+3.4%</td>
+  </tr>
+  <tr>
+    <td>95% CI</td>
+    <td>4.8 – 31.7</td>
+    <td>3.9 – 26.6</td>
+    <td class="highlight-red">&minus;7.0 – 15.2</td>
+  </tr>
+  <tr>
+    <td><strong>p-value</strong></td>
+    <td><strong>0.01</strong></td>
+    <td><strong>0.009</strong></td>
+    <td class="highlight-red"><strong>0.47</strong></td>
+  </tr>
+  <tr>
+    <td>Placebo — random dates exceed</td>
+    <td>14 / 1,000</td>
+    <td>—</td>
+    <td class="highlight-red">162 / 1,000</td>
+  </tr>
+  <tr>
+    <td>Placebo — random Fridays exceed</td>
+    <td>20 / 1,000</td>
+    <td>—</td>
+    <td class="highlight-red">216 / 1,000</td>
+  </tr>
+</table>
+
+<!-- ===== 2023-ONLY ===== -->
+<h2>2023-Only Albums (5 New Releases)</h2>
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td>Release-day fatalities</td>
+    <td>113.2</td>
+  </tr>
+  <tr>
+    <td>Surrounding-day fatalities</td>
+    <td>115.0</td>
+  </tr>
+  <tr>
+    <td><strong>Absolute increase</strong></td>
+    <td class="highlight-red"><strong>&minus;1.8 deaths</strong></td>
+  </tr>
+  <tr>
+    <td>p-value</td>
+    <td class="highlight-red">0.76</td>
+  </tr>
+  <tr>
+    <td>Placebo — random dates exceed</td>
+    <td class="highlight-red">627 / 1,000</td>
+  </tr>
+  <tr>
+    <td>Adjacent Friday odds ratio</td>
+    <td>0.99</td>
+  </tr>
+</table>
+
+<!-- ===== DISCREPANCIES ===== -->
+<h2>Key Discrepancies</h2>
+
+<p><strong>1. Our 2017–2022 reproduction is close but not identical to the paper</strong></p>
+<ul>
+  <li>We find +15.3 excess deaths vs. the paper's +18.2 — roughly 16% smaller</li>
+  <li>Both are statistically significant (p&nbsp;=&nbsp;0.009 vs. p&nbsp;=&nbsp;0.01)</li>
+  <li>Likely explained by FARS data revisions between the paper's data pull and ours</li>
+</ul>
+
+<p><strong>2. Adding 2023 collapses the effect</strong></p>
+<ul>
+  <li>Absolute increase drops from +15.3 to +4.1 deaths (&minus;73%)</li>
+  <li>No longer statistically significant (p&nbsp;=&nbsp;0.47)</li>
+  <li>Placebo performance degrades from 14/1,000 to 162/1,000</li>
+</ul>
+
+<p><strong>3. 2023 albums show no effect at all</strong></p>
+<ul>
+  <li>The five 2023 mega-releases show a <em>negative</em> point estimate (&minus;1.8 deaths)</li>
+  <li>627 of 1,000 random-date placebos produce a larger "effect"</li>
+  <li>Adjacent-Friday odds ratio is 0.99 — completely flat</li>
+</ul>
+
+<!-- ===== ALBUM SWAP ===== -->
+<h2>What Changed in the Re-ranked Top 10?</h2>
+<table>
+  <tr>
+    <th>Dropped from Original Top 10</th>
+    <th>Added from 2023</th>
+  </tr>
+  <tr>
+    <td>Harry's House (Harry Styles)</td>
+    <td>1989 Taylor's Version (Taylor Swift)</td>
+  </tr>
+  <tr>
+    <td>Her Loss (Drake &amp; 21 Savage)</td>
+    <td>Nadie Sabe Lo Que Va a Pasar Mañana (Bad Bunny)</td>
+  </tr>
+  <tr>
+    <td>Donda (Kanye West)</td>
+    <td>UTOPIA (Travis Scott)</td>
+  </tr>
+  <tr>
+    <td>Red Taylor's Version (Taylor Swift)</td>
+    <td>Speak Now Taylor's Version (Taylor Swift)</td>
+  </tr>
+  <tr>
+    <td>Folklore (Taylor Swift)</td>
+    <td>For All the Dogs (Drake)</td>
+  </tr>
+</table>
+
+<!-- ===== BOTTOM LINE ===== -->
+<h2>Bottom Line</h2>
+<table class="bottom-line">
+  <tr>
+    <th>Claim</th>
+    <th>Replicates?</th>
+    <th>Details</th>
+  </tr>
+  <tr>
+    <td>Streaming spike on release day</td>
+    <td><span class="yes">Yes</span></td>
+    <td>~43% increase, consistent with paper</td>
+  </tr>
+  <tr>
+    <td>Fatality increase (2017–2022)</td>
+    <td><span class="mostly">Mostly</span></td>
+    <td>Directionally consistent, ~16% smaller magnitude</td>
+  </tr>
+  <tr>
+    <td>Fatality increase with 2023 data</td>
+    <td><span class="no">No</span></td>
+    <td>Effect disappears, p = 0.47</td>
+  </tr>
+  <tr>
+    <td>2023 albums alone</td>
+    <td><span class="no">No</span></td>
+    <td>Point estimate is negative</td>
+  </tr>
+</table>
+
+<div class="callout">
+  The original finding appears specific to the 2017–2022 sample. Extending the same methodology
+  one year forward with five new blockbuster albums produces no detectable effect on traffic fatalities.
+</div>
+
+<p class="footer">
+  Generated from FARS data. All numbers from real fatality counts — no synthetic data.
+  Source code and full results available in the repository.
+</p>
+
+</body>
+</html>

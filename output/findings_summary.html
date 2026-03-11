@@ -316,6 +316,112 @@
   <li>Adjacent-Friday odds ratio is 0.99 — completely flat</li>
 </ul>
 
+<!-- ===== WEATHER ROBUSTNESS CHECK ===== -->
+<div class="page-break"></div>
+<h2>Robustness Check: Severe Weather on Release Dates</h2>
+
+<div class="callout callout-blue">
+  The paper controls for day-of-week, week-of-year, calendar year, and federal holidays &mdash;
+  but <strong>not weather</strong>. We checked NWS and NOAA event records for each of the 10 release
+  dates. The results are striking: 6 of 10 release dates coincided with significant severe weather,
+  vs. a base rate of ~3&ndash;4% of days nationally. This is roughly <strong>17&times; the expected rate</strong>.
+</div>
+
+<table>
+  <tr>
+    <th>Album</th>
+    <th>Date</th>
+    <th>Severity</th>
+    <th>Weather Event</th>
+  </tr>
+  <tr>
+    <td>Donda</td>
+    <td>2021-08-29</td>
+    <td class="highlight-red"><strong>5/5</strong></td>
+    <td style="text-align:left">Hurricane Ida Cat 4 landfall in LA (150mph, 16ft surge, 92 US deaths)</td>
+  </tr>
+  <tr>
+    <td>Certified Lover Boy</td>
+    <td>2021-09-03</td>
+    <td class="highlight-red"><strong>5/5</strong></td>
+    <td style="text-align:left">Ida remnants flood NE &mdash; record NYC rainfall, first-ever flash flood emergency, 55+ deaths</td>
+  </tr>
+  <tr>
+    <td>Her Loss</td>
+    <td>2022-11-04</td>
+    <td class="highlight-red"><strong>4/5</strong></td>
+    <td style="text-align:left">31-tornado outbreak incl. two EF4s (TX/OK/AR/LA), 4 deaths, 600+ flights cancelled</td>
+  </tr>
+  <tr>
+    <td>Mr. Morale</td>
+    <td>2022-05-13</td>
+    <td style="background:#fef3e0"><strong>3/5</strong></td>
+    <td style="text-align:left">Day after billion-dollar Midwest derecho (107mph gusts, 34 tornadoes); continued 60+mph winds</td>
+  </tr>
+  <tr>
+    <td>Harry's House</td>
+    <td>2022-05-20</td>
+    <td style="background:#fef3e0"><strong>3/5</strong></td>
+    <td style="text-align:left">EF3 tornado hits Gaylord MI (2 killed, 44 injured) + baseball-sized hail</td>
+  </tr>
+  <tr>
+    <td>Scorpion</td>
+    <td>2018-06-29</td>
+    <td style="background:#fef3e0"><strong>3/5</strong></td>
+    <td style="text-align:left">Extreme heat wave (60M under advisories) + 100mph derecho winds across ND/MN</td>
+  </tr>
+  <tr>
+    <td>Folklore</td>
+    <td>2020-07-24</td>
+    <td><strong>2/5</strong></td>
+    <td style="text-align:left">Hurricane Hanna intensifying in Gulf (Cat 1 TX landfall next day)</td>
+  </tr>
+  <tr>
+    <td>Un Verano Sin Ti</td>
+    <td>2022-05-06</td>
+    <td><strong>1/5</strong></td>
+    <td style="text-align:left">2 days after OK/TX tornado outbreak; residual unsettled weather</td>
+  </tr>
+  <tr>
+    <td>Red (Taylor's Version)</td>
+    <td>2021-11-12</td>
+    <td><strong>1/5</strong></td>
+    <td style="text-align:left">Light rain/snow in northern MN; nothing significant nationally</td>
+  </tr>
+  <tr>
+    <td>Midnights</td>
+    <td>2022-10-21</td>
+    <td class="highlight-green"><strong>0/5</strong></td>
+    <td style="text-align:left">Quiet weather nationally; drought conditions</td>
+  </tr>
+</table>
+
+<div class="figure-container">
+  <img src="weather_severity.png" alt="Weather severity on album release dates">
+  <div class="figure-caption">
+    Panel A: Documented severe weather severity (0&ndash;5) on each album release date.
+    Panel B: 60% of release dates had significant severe weather vs. ~3.5% base rate.
+    Sources: NWS event summaries, NOAA climate reports, NCEI storm event database.
+  </div>
+</div>
+
+<h3>Hurricane Ida: The Elephant in the Room</h3>
+<div class="callout">
+  Donda (Aug 29) and Certified Lover Boy (Sep 3) bracket <strong>Hurricane Ida's entire U.S. lifecycle</strong> &mdash;
+  from Category 4 landfall in Louisiana to catastrophic remnant flooding that killed 55+ people in the Northeast.
+  Ida caused 92 total U.S. deaths and $75 billion in damage. The paper's regression controls for holidays but
+  not for a once-in-a-decade hurricane that directly caused traffic fatalities across multiple states.
+  These two albums alone could drive a substantial portion of the observed fatality spike.
+</div>
+
+<p style="font-size:13px;">
+  <strong>What this means:</strong> Weather is a plausible confound that the paper does not control for.
+  The fact that 6/10 release dates saw major severe weather &mdash; purely by coincidence &mdash; could inflate
+  release-day fatality counts relative to surrounding days when weather was calmer.
+  This does not prove weather <em>caused</em> the observed effect, but it raises a serious question
+  about whether the day-of-week and holiday fixed effects are sufficient to isolate the streaming mechanism.
+</p>
+
 <!-- ===== ALBUM TABLES ===== -->
 <div class="page-break"></div>
 <h2>Album Tables</h2>

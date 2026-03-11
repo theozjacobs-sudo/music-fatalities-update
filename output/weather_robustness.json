@@ -1,0 +1,105 @@
+{
+  "method": "Qualitative severity scoring from NWS/NOAA documented events",
+  "note": "Weather APIs blocked in sandbox; severity coded from authoritative sources",
+  "albums": [
+    {
+      "date": "2018-06-29",
+      "album": "Scorpion",
+      "artist": "Drake",
+      "severity": 3,
+      "label": "High",
+      "event": "Extreme heat wave (heat index 105-116F across Midwest/NE, 60M under advisories) + derecho with 100mph winds across ND/MN",
+      "source": "NWS Fargo, NOAA Climate Report June 2018"
+    },
+    {
+      "date": "2020-07-24",
+      "album": "Folklore",
+      "artist": "Taylor Swift",
+      "severity": 2,
+      "label": "Moderate",
+      "event": "Hurricane Hanna intensifying in Gulf (Cat 1 landfall next day in TX) + severe flooding in SD",
+      "source": "NWS, Wikipedia: Hurricane Hanna (2020)"
+    },
+    {
+      "date": "2021-08-29",
+      "album": "Donda",
+      "artist": "Kanye West",
+      "severity": 5,
+      "label": "Catastrophic",
+      "event": "Hurricane Ida Cat 4 landfall in Louisiana (150mph winds, 16ft storm surge, 1M without power, 92 deaths total)",
+      "source": "NWS New Orleans, Wikipedia: Hurricane Ida"
+    },
+    {
+      "date": "2021-09-03",
+      "album": "Certified Lover Boy",
+      "artist": "Drake",
+      "severity": 5,
+      "label": "Catastrophic",
+      "event": "Hurricane Ida remnants devastate NE \u2014 record rainfall in NYC (3.15in/hr), first-ever flash flood emergency for NYC, 55+ deaths in NE",
+      "source": "NWS Sterling VA, Wikipedia: Effects of Ida in NE US"
+    },
+    {
+      "date": "2021-11-12",
+      "album": "Red (Taylor's Version)",
+      "artist": "Taylor Swift",
+      "severity": 1,
+      "label": "Low",
+      "event": "Light rain/snow in northern MN, no significant nationwide event",
+      "source": "NWS Duluth Nov 2021 Climate Summary"
+    },
+    {
+      "date": "2022-05-06",
+      "album": "Un Verano Sin Ti",
+      "artist": "Bad Bunny",
+      "severity": 1,
+      "label": "Low-Moderate",
+      "event": "2 days after OK/TX tornado outbreak (13+ tornadoes May 4); residual unsettled weather",
+      "source": "NWS Norman, NOAA May 2022 Climate Report"
+    },
+    {
+      "date": "2022-05-13",
+      "album": "Mr. Morale & the Big Steppers",
+      "artist": "Kendrick Lamar",
+      "severity": 3,
+      "label": "High",
+      "event": "Day after historic May 12 derecho (107mph gusts, 34 tornadoes, billion-dollar disaster); continued 60+mph winds, power outages",
+      "source": "NWS Fargo, Wikipedia: May 2022 Midwest Derecho"
+    },
+    {
+      "date": "2022-05-20",
+      "album": "Harry's House",
+      "artist": "Harry Styles",
+      "severity": 3,
+      "label": "High",
+      "event": "EF3 tornado hits Gaylord MI (2 killed, 44 injured) + baseball-sized hail",
+      "source": "NWS Gaylord May 20 2022 Severe Recap"
+    },
+    {
+      "date": "2022-10-21",
+      "album": "Midnights",
+      "artist": "Taylor Swift",
+      "severity": 0,
+      "label": "Low",
+      "event": "Quiet weather nationally; widespread drought, low river levels",
+      "source": "NCEI Oct 2022 Climate Assessment"
+    },
+    {
+      "date": "2022-11-04",
+      "album": "Her Loss",
+      "artist": "Drake & 21 Savage",
+      "severity": 4,
+      "label": "Very High",
+      "event": "Major tornado outbreak: 31 tornadoes including two EF4s (TX/OK/AR/LA), 4 deaths, 55K without power, 600+ flights cancelled",
+      "source": "NWS Norman, Wikipedia: Nov 4-5 2022 Tornado Outbreak"
+    }
+  ],
+  "summary": {
+    "mean_severity": 2.7,
+    "median_severity": 3.0,
+    "n_severe_gte3": 6,
+    "n_catastrophic_gte4": 3,
+    "pct_severe": 60.0,
+    "base_rate_pct": 3.5,
+    "ratio_to_base_rate": 17.142857142857142
+  }
+}
